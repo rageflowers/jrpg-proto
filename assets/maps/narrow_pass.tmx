@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="16" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="29">
+ <tileset firstgid="1" source="Velastra_Highlands.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="30" height="16">
+  <data encoding="csv">
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,
+2,2,2,2,3,1,1,3,2,2,2,2,3,1,2,1,2,2,2,2,1,1,3,1,3,3,2,2,2,2,
+2,2,2,2,1,6,6,1,3,2,2,1,1,6,6,1,3,2,3,1,1,6,3,1,1,2,2,2,2,3,
+2,2,2,3,1,6,6,1,1,1,1,1,6,6,6,6,1,2,1,6,6,6,6,6,1,2,2,3,3,1,
+2,2,3,1,6,6,6,6,6,1,1,6,6,6,7,6,1,1,6,6,6,7,6,6,1,1,1,1,1,7,
+3,2,1,1,6,7,6,6,6,6,6,6,7,7,7,6,1,6,7,7,7,7,6,6,6,1,7,7,7,7,
+1,3,1,6,6,7,7,7,6,6,6,7,7,7,7,6,6,7,7,7,7,7,7,6,6,6,7,7,7,7,
+1,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,5,5,
+6,6,6,7,5,5,5,7,5,5,7,7,7,7,5,5,5,7,7,5,5,5,5,5,5,5,5,5,5,5,
+5,5,5,5,5,7,7,5,5,5,5,7,5,5,5,5,7,5,5,5,7,7,5,5,5,7,5,7,7,7,
+7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+6,7,6,6,6,7,6,6,6,7,7,7,7,7,7,7,7,6,6,6,7,7,7,6,6,7,7,7,4,4,
+6,6,4,6,6,6,6,4,6,6,6,7,7,6,6,6,6,6,6,6,6,6,6,6,6,6,4,4,4,4,
+1,3,4,4,4,4,4,4,3,6,6,6,6,6,4,4,3,6,6,3,6,4,4,4,6,3,6,3,6,4,
+1,1,1,1,4,1,3,1,1,1,1,3,3,4,4,1,1,1,1,1,3,1,1,4,4,1,3,3,3,1
+</data>
+ </layer>
+ <objectgroup id="4" name="Landmarks">
+  <object id="10" name="SC00" x="846.789" y="165.57">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/small_conifer_00.png"/>
+    <property name="scale" type="float" value="0.7"/>
+   </properties>
+  </object>
+  <object id="23" name="SC01" x="871.839" y="496.099">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/small_conifer_01.png"/>
+    <property name="scale" type="float" value="0.65"/>
+   </properties>
+  </object>
+  <object id="15" name="oak_00" x="34.8247" y="203.449">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_00.png"/>
+    <property name="scale" type="float" value="1.3"/>
+   </properties>
+  </object>
+  <object id="17" name="oak_02" x="-61.0375" y="446.777">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_02.png"/>
+    <property name="scale" type="float" value="1.15"/>
+   </properties>
+  </object>
+  <object id="26" name="shrub_rhodo04" x="115" y="512" width="1.42109e-14">
+   <properties>
+    <property name="image_path" value="assets/landmarks/shrubs/shrub_green_gold_01.png"/>
+    <property name="scale" type="float" value="0.52"/>
+   </properties>
+  </object>
+  <object id="18" name="shrub_rhodo00" x="64" y="448">
+   <properties>
+    <property name="image_path" value="assets/landmarks/shrubs/shrub_rhodo_wht_00.png"/>
+    <property name="scale" type="float" value="0.6"/>
+   </properties>
+  </object>
+  <object id="25" name="shrub_rhodo03" x="203.667" y="198.333">
+   <properties>
+    <property name="image_path" value="assets/landmarks/shrubs/shrub_green_gold_01.png"/>
+    <property name="scale" type="float" value="0.4"/>
+   </properties>
+  </object>
+  <object id="19" name="shrub_rhodo01" x="-9.77535" y="522.981">
+   <properties>
+    <property name="image_path" value="assets/landmarks/shrubs/shrub_rhodo_00.png"/>
+    <property name="scale" type="float" value="0.8"/>
+   </properties>
+  </object>
+  <object id="21" name="oak_03" x="181.455" y="553.529">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_03.png"/>
+    <property name="scale" type="float" value="0.85"/>
+   </properties>
+  </object>
+  <object id="22" name="oak_04" x="288" y="192">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_00.png"/>
+    <property name="scale" type="float" value="0.75"/>
+   </properties>
+  </object>
+  <object id="16" name="oak_01" x="131.356" y="230.332">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_01.png"/>
+    <property name="scale" type="float" value="0.75"/>
+   </properties>
+  </object>
+  <object id="24" name="shrub_rhodo02" x="303.51" y="511.505">
+   <properties>
+    <property name="image_path" value="assets/landmarks/shrubs/shrub_rhodo_gold_00.png"/>
+    <property name="scale" type="float" value="0.5"/>
+   </properties>
+  </object>
+  <object id="27" name="oak_05" x="444.667" y="114">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_01.png"/>
+    <property name="scale" type="float" value="0.6"/>
+   </properties>
+  </object>
+  <object id="28" name="oak_06" x="341" y="416.667">
+   <properties>
+    <property name="image_path" value="assets/landmarks/trees/oak_03.png"/>
+    <property name="scale" type="float" value="0.6"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="3" name="exits">
+  <object id="7" name="to_velastra_highlands" x="928" y="160" width="32" height="192"/>
+  <object id="8" x="0" y="160" width="32" height="192"/>
+ </objectgroup>
+ <objectgroup id="5" name="spawns">
+  <object id="9" name="from_velastra" x="800" y="288" width="32" height="32"/>
+ </objectgroup>
+ <objectgroup id="2" name="collision">
+  <object id="1" x="0" y="0" width="960" height="64"/>
+  <object id="2" x="0" y="448" width="960" height="64"/>
+  <object id="3" x="0" y="64" width="64" height="96"/>
+  <object id="4" x="0" y="352" width="64" height="96"/>
+  <object id="5" x="896" y="64" width="64" height="96"/>
+  <object id="6" x="896" y="352" width="64" height="96"/>
+ </objectgroup>
+</map>

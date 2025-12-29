@@ -1,0 +1,76 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "velastra_highlands.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "Velastra_Highlands.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "narrow_pass.tmx": {
+            "expandedObjectLayers": [
+                5,
+                2,
+                4,
+                3
+            ],
+            "scale": 3,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 368.5,
+                "y": 360.16666666666663
+            }
+        },
+        "trees_conifers.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "velastra_highlands.tmx": {
+            "expandedGroupLayers": [
+                8,
+                10
+            ],
+            "expandedObjectLayers": [
+                5,
+                11,
+                4,
+                3
+            ],
+            "scale": 1,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 296.5,
+                "y": 400.5
+            }
+        },
+        "velastra_highlands.tmx#trees_conifers": {
+            "scaleInDock": 1
+        }
+    },
+    "last.imagePath": "C:/Users/rageflowers/jrpg-proto/assets/tiles/grass",
+    "last.objectTemplatePath": "C:/Users/rageflowers/jrpg-proto/assets/landscape/trees/tmp",
+    "map.height": 16,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 30,
+    "openFiles": [
+        "Velastra_Highlands.tsx",
+        "trees_conifers.tsx",
+        "velastra_highlands.tmx"
+    ],
+    "project": "velastra_highlands.tiled-project",
+    "property.type": "float",
+    "recentFiles": [
+        "trees_conifers.tsx",
+        "Velastra_Highlands.tsx",
+        "velastra_highlands.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.type": 1
+}
