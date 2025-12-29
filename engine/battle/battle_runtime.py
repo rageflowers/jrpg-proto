@@ -101,6 +101,7 @@ class BattleRuntime:
         self.input = self.input_handler
         # XVII.11 – phase-based nervous system
         self.action_mapper = ActionMapper(self)
+
     def is_session_authoritative_for_player_skill(self, skill_id: str) -> bool:
         return skill_id in SESSION_AUTH_PLAYER_SKILLS
     # ------------------------------------------------------
@@ -215,223 +216,38 @@ class BattleRuntime:
         Authority notes (XVII.26+):
         - ActionMapper owns phase/CTB; this method only resolves payload -> result.
         - Session mutation still happens in POST_RESOLVE.
-
-        Transitional seams:
-        - SkillDefinition lookup currently uses controller.get_skills_for(actor.name).
-        - MP failure feedback is forwarded via arena._apply_battle_event(...).
         """
-        from engine.battle.action_resolver import ActionResult, TargetResult
-
         arena = getattr(self, "arena", None)
         controller = getattr(arena, "controller", None) if arena is not None else None
 
         ctype = getattr(command, "command_type", None)
 
-        # ------------------------------------------------------------------
-        # DEFEND
-        # ------------------------------------------------------------------
+        # Local import avoids cycles and keeps runtime light.
+        from engine.battle.command_handlers import (
+            resolve_defend,
+            resolve_flee,
+            resolve_item,
+            resolve_equip_weapon,
+            resolve_skill,
+        )
+
         if ctype == "defend":
-            actor_id = getattr(command, "actor_id", None)
-            if not actor_id:
-                return None
+            return resolve_defend(command)
 
-            res = ActionResult(
-                actor_id=actor_id,
-                command_type="defend",
-                skill_id=None,
-                item_id=None,
-                element=None,
-                targets=[
-                    TargetResult(
-                        target_id=actor_id,
-                        hp_delta=0,
-                        mp_delta=0,
-                        status_applied=["defend_1"],
-                        status_removed=[],
-                    )
-                ],
-            )
-            res.success = True
-            return res
-
-        # ------------------------------------------------------------------
-        # FLEE / ESCAPE
-        # ------------------------------------------------------------------
         if ctype == "flee":
-            actor_id = getattr(command, "actor_id", None)
-            if not actor_id:
-                return None
+            return resolve_flee(command, session=self.session)
 
-            import random
-            can_escape = bool(getattr(self.session.flags, "can_escape", True))
-            success = can_escape and (random.random() < 0.50)
-
-            res = ActionResult(
-                actor_id=actor_id,
-                command_type="escape",
-                skill_id=None,
-                item_id=None,
-                element=None,
-                targets=[],
-            )
-            res.success = success
-            return res
-
-        # ------------------------------------------------------------------
-        # ITEM
-        # ------------------------------------------------------------------
         if ctype == "item":
-            actor_id = getattr(command, "actor_id", None)
-            item_id = getattr(command, "item_id", None)
-            if not actor_id or not item_id:
-                return None
+            return resolve_item(command, session=self.session, runtime=self)
 
-            target_ids = list(getattr(command, "targets", []) or [])
-            if not target_ids:
-                return None
-
-            # Initialize item/effect defaults (idempotent)
-            from engine.items.defs import get_item
-            from engine.items.effects.registry import get_effect, BattleItemContext
-
-            item_def = get_item(item_id)
-            if item_def is None:
-                return None
-
-            effect_id = getattr(item_def, "effect_id", None)
-            if not effect_id:
-                return None
-
-            fn = get_effect(effect_id)
-            if fn is None:
-                return None
-
-            ctx = BattleItemContext(
-                session=self.session,
-                runtime=self,
-                actor_id=actor_id,
-                item_id=item_id,
-                target_ids=target_ids,
-            )
-            try:
-                return fn(ctx)
-            except Exception:
-                return None
-
-        # ------------------------------------------------------------------
-        # EQUIP WEAPON
-        # ------------------------------------------------------------------
         if ctype == "equip_weapon":
-            actor_id = getattr(command, "actor_id", None)
-            weapon_id = getattr(command, "item_id", None)
-            if not actor_id or not weapon_id:
-                return None
+            return resolve_equip_weapon(command)
 
-            # Validate the item is a weapon
-            from engine.items.defs import get_item
-            item_def = get_item(weapon_id)
-            if item_def is None or getattr(item_def, "kind", None) != "weapon":
-                return None
+        if ctype == "skill":
+            return resolve_skill(command, runtime=self, controller=controller, arena=arena)
 
-            # Build an ActionResult that explicitly represents the equip change.
-            # NOTE: No targets; Session should not be involved in equipment changes.
-            from engine.battle.action_resolver import ActionResult
+        return None
 
-            res = ActionResult(
-                actor_id=actor_id,
-                command_type="equip_weapon",
-                skill_id=None,
-                item_id=weapon_id,
-                item_qty=1,
-                element=None,
-                targets=[],
-            )
-            res.success = True
-            return res
-
-        # ------------------------------------------------------------------
-        # SKILL
-        # ------------------------------------------------------------------
-        if ctype != "skill":
-            return None
-
-        # --- Resolve actor + targets from Session (truth by combatant id)
-        actor_id = getattr(command, "actor_id", None)
-        if not actor_id:
-            return None
-
-        try:
-            actor = self.session.get_combatant(actor_id)
-        except Exception:
-            return None
-
-        target_ids = list(getattr(command, "targets", []) or [])
-        if not target_ids:
-            return None
-
-        try:
-            targets = [self.session.get_combatant(tid) for tid in target_ids]
-        except Exception:
-            return None
-
-        # --- Resolve SkillDefinition by id
-        skill_id = getattr(command, "skill_id", None)
-        if not skill_id:
-            return None
-
-        skill_def = None
-        defs = []
-        if controller is not None and hasattr(controller, "get_skills_for"):
-            try:
-                defs = controller.get_skills_for(getattr(actor, "name", ""))
-            except Exception:
-                defs = []
-
-        for d in defs:
-            meta = getattr(d, "meta", None)
-            if meta is not None and getattr(meta, "id", None) == skill_id:
-                skill_def = d
-                break
-
-        if skill_def is None:
-            return None
-
-        meta = getattr(skill_def, "meta", None)
-
-        # --- Affordance check (soft fail): MP
-        mp_cost = getattr(meta, "mp_cost", 0) if meta is not None else 0
-        if mp_cost and getattr(actor, "mp", 0) < mp_cost:
-            self._emit_player_message(
-                arena=arena,
-                actor=actor,
-                meta=meta,
-                msg=(
-                    f"{getattr(actor, 'name', '???')} tries to use "
-                    f"{getattr(meta, 'name', 'a skill')}, but lacks the aether."
-                ),
-            )
-            return None
-
-        # --- Mechanical resolution
-        try:
-            from engine.battle.skills.resolver import SkillResolver
-            skill_result = SkillResolver.resolve(skill_def, actor, targets, controller)
-        except Exception:
-            return None
-
-        if skill_result is None:
-            return None
-
-        # --- Convert to ActionResult (captured for POST_RESOLVE mutation)
-        try:
-            return self.capture_player_resolution(
-                actor=actor,
-                skill_def=skill_def,
-                targets=targets,
-                skill_result=skill_result,
-            )
-        except Exception:
-            return None
 
     def _emit_player_message(self, arena, actor, meta, msg: str) -> None:
         """Transitional UI feedback hook (safe no-op if not available)."""
