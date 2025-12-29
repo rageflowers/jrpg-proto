@@ -212,13 +212,22 @@ class DamageEffect(SkillEffect):
             # Skip dead/KO targets
             if hasattr(t, "hp") and getattr(t, "hp") <= 0:
                 continue
+            from engine.battle.effective_combatant import EffectiveCombatant
+            from engine.battle.equipment_query import get_weapon_bonus_for_user
 
-            # 1) Pre-defense base_damage from user stats + skill scaling
-            base_damage = self.compute_base_damage(user, t, battle_state)
+            bonus = get_weapon_bonus_for_user(user, battle_state)
+            eff_user = EffectiveCombatant(
+                base=user,
+                atk_bonus=bonus.atk_bonus,
+                mag_bonus=bonus.mag_bonus,
+            )
 
-            # 2) Shared damage model: DEF/MRES + variance
+            # 1) Pre-defense base_damage from EFFECTIVE user stats + skill scaling
+            base_damage = self.compute_base_damage(eff_user, t, battle_state)
+
+            # 2) Shared damage model: DEF/MRES + variance (also uses effective stats)
             base, breakdown = compute_damage(
-                attacker=user,
+                attacker=eff_user,
                 defender=t,
                 element=self.element,
                 base_damage=base_damage,

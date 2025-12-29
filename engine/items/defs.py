@@ -22,6 +22,9 @@ class ItemDef:
     # For later (equipment compatibility)
     weapon_tags: tuple[str, ...] = ()
     allowed_weapon_tags: tuple[str, ...] = ()
+    atk_bonus: float = 0.0
+    mag_bonus: float = 0.0
+    description: str | None = None
 
 
 # ---------------------------------------------------------------------
