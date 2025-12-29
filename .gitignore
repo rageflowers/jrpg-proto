@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Editor / OS noise
+.vscode/
+.DS_Store
+Thumbs.db
