@@ -172,25 +172,37 @@ class BattleUI:
 
         # --- Left menu panel ---
         if party and active_actor is not None:
-            self._draw_skill_menu(
-                surface,
-                arena=arena,
-                phase=phase,
-                ui_mode=ui_mode,
-                actor=active_actor,
-                skills=skills,
-                menu_index=0,  # legacy param (ignored by _draw_skill_menu)
-                rect=menu_rect,
-            )
+            # If weapons popup is open, don't draw the skills submenu underneath.
+            if getattr(arena.ui, "menu_layer", "root") != "weapons":
+                self._draw_skill_menu(
+                    surface,
+                    arena=arena,
+                    phase=phase,
+                    ui_mode=ui_mode,
+                    actor=active_actor,
+                    skills=skills,
+                    menu_index=0,
+                    rect=menu_rect,
+                )
 
-            # Tactical popup overlay (draw-only; UIFlow owns logic)
+            # Weapons popup overlay
+            if getattr(arena.ui, "menu_layer", "root") == "weapons":
+                self._draw_weapons_menu(
+                    surface,
+                    rect=menu_rect,
+                    arena=arena,
+                    actor=active_actor,
+                )
+
+            # Tactical popup overlay (unchanged)
             if getattr(arena, "ui_flow", None) is not None:
                 if arena.ui_flow.state.mode == "tactical":
                     self._draw_tactical_popup(
                         surface,
                         rect=menu_rect,
                         tactical_index=arena.ui_flow.state.tactical_index,
-                        flee_allowed=True,  # keep simple for now (spec)
+                        flee_allowed=True,
+                        can_swap=arena.ui_flow._can_weapon_swap(active_actor),
                     )
 
         # --- Middle dialog / narration strip ---
@@ -604,7 +616,6 @@ class BattleUI:
                 ),
             )
 
-
     def _render_status_pips(
         self,
         surface: pygame.Surface,
@@ -785,6 +796,7 @@ class BattleUI:
         rect: pygame.Rect,
         tactical_index: int,
         flee_allowed: bool,
+        can_swap: bool,
     ) -> None:
         """
         Draw the tactical popup (Defend / Flee).
@@ -794,26 +806,19 @@ class BattleUI:
         # Popup size/position: small overlay inside the menu column
         pad = 10
         w = rect.width - pad * 2
-        h = 92
-        popup = pygame.Rect(rect.x + pad, rect.y + pad, w, h)
 
-        # Backplate
-        panel = pygame.Surface(popup.size, pygame.SRCALPHA)
-        panel.fill((20, 18, 28, 235))
-        surface.blit(panel, popup.topleft)
-        pygame.draw.rect(surface, (150, 120, 190), popup, width=2, border_radius=6)
-
-        # Title
-        title = self.font_small.render("Tactical", True, (235, 235, 245))
-        surface.blit(title, (popup.x + 10, popup.y + 8))
-
-        # Options
+        # Options (MUST MATCH UIFlow order)
         options = ["Defend"]
+        if can_swap:
+            options.append("Weapons")
         if flee_allowed:
             options.append("Flee")
 
-        y0 = popup.y + 32
         line_h = self.font_small.get_height() + 8
+        h = 60 + len(options) * line_h  # title + rows + footer
+        popup = pygame.Rect(rect.x + pad, rect.y + pad, w, h)
+
+        y0 = popup.y + 32
 
         for i, label in enumerate(options):
             row = pygame.Rect(popup.x + 8, y0 + i * line_h, popup.width - 16, line_h - 2)
@@ -1005,6 +1010,112 @@ class BattleUI:
             if is_selected:
                 cursor = self.font_small.render("▶", True, color)
                 surface.blit(cursor, (x + 10, ty))
+
+    def _draw_weapons_menu(
+        self,
+        surface: pygame.Surface,
+        *,
+        rect: pygame.Rect,
+        arena: "BattleArena",
+        actor: Any,
+    ) -> None:
+        """
+        Draw weapons list popup.
+        Rendering only — UIFlow owns selection and command emission.
+        """
+        ui = arena.ui_flow.state
+        runtime = arena.runtime
+
+        # UIFlow reuses skills_index as cursor for popup lists
+        cursor = int(getattr(ui, "skills_index", 0))
+
+        # Weapons available to this actor (UIFlow already has the rules)
+        try:
+            weapons = arena.ui_flow._list_compatible_weapons(actor)
+        except Exception:
+            weapons = []
+
+        # Resolve actor id + currently equipped weapon id
+        actor_id = str(getattr(actor, "id", getattr(actor, "name", "unknown_actor")))
+        equipped_id = None
+        try:
+            equipped_id = runtime.equipment.get(actor_id)
+        except Exception:
+            equipped_id = None
+
+        # Popup frame
+        pad = 10
+        w = rect.width - pad * 2
+        line_h = self.font_small.get_height() + 8
+        visible_rows = min(6, max(3, len(weapons)))  # keep sane
+        h = 60 + (visible_rows * line_h) + 22
+        popup = pygame.Rect(rect.x + pad, rect.y + pad, w, h)
+
+        panel = pygame.Surface(popup.size, pygame.SRCALPHA)
+        panel.fill((20, 18, 28, 235))
+        surface.blit(panel, popup.topleft)
+        pygame.draw.rect(surface, (150, 120, 190), popup, width=2, border_radius=6)
+
+        # Title
+        title = self.font_small.render("Weapons", True, (235, 235, 245))
+        surface.blit(title, (popup.x + 10, popup.y + 8))
+
+        # Empty state
+        if not weapons:
+            msg = self.font_small.render("No weapons available.", True, (200, 200, 210))
+            surface.blit(msg, (popup.x + 10, popup.y + 40))
+            hint = self.font_small.render("X/Esc: back", True, (180, 180, 200))
+            surface.blit(hint, (popup.x + 10, popup.bottom - hint.get_height() - 6))
+            return
+
+        # Clamp cursor
+        cursor = max(0, min(cursor, len(weapons) - 1))
+
+        # Simple paging if list longer than visible_rows
+        start = 0
+        if len(weapons) > visible_rows:
+            # keep cursor centered-ish
+            start = max(0, min(cursor - visible_rows // 2, len(weapons) - visible_rows))
+        view = weapons[start:start + visible_rows]
+
+        y0 = popup.y + 32
+
+        for i, wdef in enumerate(view):
+            idx = start + i
+            wid = str(getattr(wdef, "id", ""))
+            name = str(getattr(wdef, "name", wid or "<?>"))
+
+            atk = float(getattr(wdef, "atk_bonus", 0.0) or 0.0)
+            mag = float(getattr(wdef, "mag_bonus", 0.0) or 0.0)
+
+            row = pygame.Rect(popup.x + 8, y0 + i * line_h, popup.width - 16, line_h - 2)
+
+            # Highlight selected row
+            if idx == cursor:
+                pygame.draw.rect(surface, (90, 70, 130), row, border_radius=4)
+                pygame.draw.rect(surface, (200, 170, 240), row, width=1, border_radius=4)
+
+            # Mark equipped
+            eq_mark = "✓ " if (equipped_id is not None and str(equipped_id) == wid) else "  "
+
+            # Text
+            left = f"{eq_mark}{name}"
+            right = []
+            if atk:
+                right.append(f"ATK+{int(atk)}")
+            if mag:
+                right.append(f"MAG+{int(mag)}")
+            right_txt = "  ".join(right) if right else ""
+
+            txt_l = self.font_small.render(left, True, (240, 240, 250))
+            surface.blit(txt_l, (row.x + 8, row.y + 3))
+
+            if right_txt:
+                txt_r = self.font_small.render(right_txt, True, (200, 200, 230))
+                surface.blit(txt_r, (row.right - txt_r.get_width() - 10, row.y + 3))
+
+        hint = self.font_small.render("Z/Enter: equip   X/Esc: back", True, (180, 180, 200))
+        surface.blit(hint, (popup.x + 10, popup.bottom - hint.get_height() - 6))
 
     def _draw_message_box(self, surface: pygame.Surface, message: str, rect: pygame.Rect) -> None:
         """

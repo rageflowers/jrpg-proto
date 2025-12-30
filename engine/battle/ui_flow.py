@@ -66,7 +66,7 @@ class UIFlow:
         aid = self._actor_id(actor)
 
         allowed = {
-            "Setia": {"fist"},
+            "Setia": {"sword", "fist"},
             "Nyra": {"staff"},
             "Kaira": {"dagger"},
         }.get(aid, set())
@@ -305,14 +305,6 @@ class UIFlow:
             # Build root menu options (Attack / Arts / Elemental / Items)
             root_options = ui._get_root_menu_options(actor, skills)
 
-            # LEFT special-case: on ROOT, if highlighting Items, open weapon popup
-            if ui is not None and ui.menu_layer == "root" and key == pygame.K_LEFT:
-                _label, group = root_options[ui.root_index]
-                if group == "items" and self._can_weapon_swap(actor):
-                    ui.menu_layer = "weapons"
-                    ui.skills_index = 0
-                    return True, None, None
-
             # LEFT opens Tactical (spec)
             if key == pygame.K_LEFT:
                 self.open_tactical()
@@ -495,10 +487,21 @@ class UIFlow:
 
             return False, None, None
 
-
         # ---------------- TACTICAL POPUP ----------------
         if self.state.mode == "tactical":
-            max_idx = 1 if flee_allowed else 0
+            can_swap = self._can_weapon_swap(actor)
+
+            # Tactical options in order:
+            # 0) Defend
+            # 1) Weapons (if allowed)
+            # 2) Flee (if allowed)
+            options: list[str] = ["defend"]
+            if can_swap:
+                options.append("weapons")
+            if flee_allowed:
+                options.append("flee")
+
+            max_idx = len(options) - 1
 
             if key == pygame.K_UP:
                 self.state.tactical_index = max(0, self.state.tactical_index - 1)
@@ -513,7 +516,19 @@ class UIFlow:
                 return True, None, None
 
             if key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
-                cmd_type = "defend" if self.state.tactical_index == 0 else "flee"
+                choice = options[self.state.tactical_index]
+
+                # Weapons is a MENU OPEN, not a command.
+                if choice == "weapons":
+                    self.state.mode = "menu"   # returns to menu mode
+                    if ui is not None:
+                        ui.menu_layer = "weapons"
+                        print("[UIFLOW] tactical->weapons menu_layer =", getattr(ui, "menu_layer", None))
+
+                        ui.skills_index = 0
+                    return True, None, None
+                # Defend/Flee emit commands
+                cmd_type = choice
                 self.close_tactical()
                 actor_id = getattr(actor, "id", getattr(actor, "name", "unknown_actor"))
                 return True, None, BattleCommand(actor_id=actor_id, command_type=cmd_type, source="player")
