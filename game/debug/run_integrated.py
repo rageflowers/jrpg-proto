@@ -172,7 +172,7 @@ def main() -> int:
     while running:
         dt = clock.tick(60) / 1000.0
         ledger.playtime_s += dt
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -193,6 +193,7 @@ def main() -> int:
             # Battle seam: check for pending battle request
             req = getattr(overworld, "pending_battle", None)
             if req is not None:
+                ledger.inventory.stacks["iron_sword"] = 1
                 arena = _build_battle_arena(
                     screen_w=screen.get_width(),
                     screen_h=screen.get_height(),
@@ -201,9 +202,7 @@ def main() -> int:
                     ledger=ledger,
                     battle_request=req,
                 )
-                if arena is not None:
-                    arena.runtime.equipment["Setia"] = "iron_sword"
-                    print("[DEBUG] party ids:", [getattr(p, "id", None) for p in arena.runtime.party])
+
                 # clear the pending request on the overworld side
                 if hasattr(overworld, "clear_pending_battle"):
                     overworld.clear_pending_battle()

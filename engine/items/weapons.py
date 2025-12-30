@@ -1,5 +1,8 @@
 # engine/items/weapons.py
 from engine.items.defs import ItemDef, register_item
+from dataclasses import field
+
+weapon_tags: set[str] = field(default_factory=set)
 
 
 def register_weapons():
@@ -15,6 +18,7 @@ def register_weapons():
             kind="weapon",
             atk_bonus=4.0,
             mag_bonus=0.0,
+            weapon_tags={"sword"},
             description="A simple but reliable blade.",
         )
     )
@@ -26,6 +30,7 @@ def register_weapons():
             kind="weapon",
             atk_bonus=0.0,
             mag_bonus=4.0,
+            weapon_tags={"staff"},
             description="A focus for budding mages.",
         )
     )
