@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 import pygame
+from engine.battle.ui.theme import THEME
 
 
 def draw_weapons_menu(
@@ -44,7 +45,7 @@ def draw_weapons_menu(
         equipped_id = None
 
     # Popup frame
-    pad = 10
+    pad = THEME.popup_pad
     w = rect.width - pad * 2
     line_h = ui.font_small.get_height() + 8
     visible_rows = min(6, max(3, len(weapons)))  # keep sane
@@ -52,19 +53,19 @@ def draw_weapons_menu(
     popup = pygame.Rect(rect.x + pad, rect.y + pad, w, h)
 
     panel = pygame.Surface(popup.size, pygame.SRCALPHA)
-    panel.fill((20, 18, 28, 235))
+    panel.fill(THEME.panel_fill)
     surface.blit(panel, popup.topleft)
-    pygame.draw.rect(surface, (150, 120, 190), popup, width=2, border_radius=6)
+    pygame.draw.rect(surface, THEME.panel_border, popup, width=2, border_radius=THEME.border_radius)
 
     # Title
-    title = ui.font_small.render("Weapons", True, (235, 235, 245))
+    title = ui.font_small.render("Weapons", True, THEME.text_primary)
     surface.blit(title, (popup.x + 10, popup.y + 8))
 
     # Empty state
     if not weapons:
-        msg = ui.font_small.render("No weapons available.", True, (200, 200, 210))
+        msg = ui.font_small.render("No weapons available.", True, THEME.text_primary)
         surface.blit(msg, (popup.x + 10, popup.y + 40))
-        hint = ui.font_small.render("X/Esc: back", True, (180, 180, 200))
+        hint = ui.font_small.render("X/Esc: back", True, THEME.text_hint)
         surface.blit(hint, (popup.x + 10, popup.bottom - hint.get_height() - 6))
         return
 
@@ -92,8 +93,8 @@ def draw_weapons_menu(
 
         # Highlight selected row
         if idx == cursor:
-            pygame.draw.rect(surface, (90, 70, 130), row, border_radius=4)
-            pygame.draw.rect(surface, (200, 170, 240), row, width=1, border_radius=4)
+            pygame.draw.rect(surface, THEME.row_hi_fill, row, border_radius=4)
+            pygame.draw.rect(surface, THEME.row_hi_border, row, width=1, border_radius=4)
 
         # Mark equipped
         eq_mark = "✓ " if (equipped_id is not None and str(equipped_id) == wid) else "  "
@@ -107,12 +108,12 @@ def draw_weapons_menu(
             right.append(f"MAG+{int(mag)}")
         right_txt = "  ".join(right) if right else ""
 
-        txt_l = ui.font_small.render(left, True, (240, 240, 250))
+        txt_l = ui.font_small.render(left, True, THEME.text_primary)
         surface.blit(txt_l, (row.x + 8, row.y + 3))
 
         if right_txt:
-            txt_r = ui.font_small.render(right_txt, True, (200, 200, 230))
+            txt_r = ui.font_small.render(right_txt, True, THEME.text_secondary)
             surface.blit(txt_r, (row.right - txt_r.get_width() - 10, row.y + 3))
 
-    hint = ui.font_small.render("Z/Enter: equip   X/Esc: back", True, (180, 180, 200))
+    hint = ui.font_small.render("Z/Enter: equip   X/Esc: back", True, THEME.text_hint)
     surface.blit(hint, (popup.x + 10, popup.bottom - hint.get_height() - 6))
